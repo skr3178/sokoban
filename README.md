@@ -21,49 +21,76 @@ conda create -n sokoban python=3.10
 conda activate sokoban
 ```
 
-### Install Dependencies
+### Install the Package (Recommended)
+```bash
+cd /Users/skr3178/Downloads/math_is_fun
+pip install -e .
+```
+
+This installs the environment as a Python package, allowing you to use `gym.make("MathIsFunSokoban-v0")` from anywhere.
+
+### Or Install Dependencies Only
 ```bash
 pip install gymnasium numpy pygame Pillow
 ```
 
+Note: Without installing the package, you'll need to manually import the environment or register it (see examples below).
+
 ## 🚀 Quick Start
 
-### 1. View a Specific Level
+### Train with Stable-Baselines3
+```bash
+pip install -e .
+pip install "stable-baselines3[extra]" torch
+python example_stable_baselines3.py  # Opens rendering window
+```
+
+See **[TRAINING.md](TRAINING.md)** for complete training guide.
+
+### View Levels
 ```bash
 python view_level.py 1      # View Level 1 (easiest)
 python view_level.py 30     # View Level 30 (medium)
 python view_level.py 60     # View Level 60 (hardest)
 ```
 
-### 2. Play Through All Levels
-```bash
-python play_sokoban.py
-```
-
 ### 3. Use in Your Code
+
+**Option A: With Package Installed** (after running `pip install -e .`)
 ```python
+import __init__  # This registers the environment with Gymnasium
 import gymnasium as gym
-from gymnasium.envs.registration import register
-from mathisfun_sokoban import MathIsFunSokoban
+import time
 
-# Register the environment
-register(
-    id="MathIsFunSokoban-v0",
-    entry_point="mathisfun_sokoban:MathIsFunSokoban",
-    max_episode_steps=300,
-)
-
-# Create and use the environment
+# Create environment - now it's registered!
 env = gym.make("MathIsFunSokoban-v0", render_mode="human")
-obs, info = env.reset()
+obs, _ = env.reset()
 
-for _ in range(1000):
+for _ in range(500):
     action = env.action_space.sample()  # Random action
-    obs, reward, done, truncated, info = env.step(action)
-    env.render()
+    obs, reward, done, truncated, _ = env.step(action)
     
     if done or truncated:
-        obs, info = env.reset()
+        obs, _ = env.reset()
+    
+    time.sleep(0.03)
+
+env.close()
+```
+
+**Option B: Direct Import** (without installing package)
+```python
+from math_is_fun.mathisfun_sokoban import MathIsFunSokoban
+
+env = MathIsFunSokoban(render_mode="human")
+obs, _ = env.reset()
+
+for _ in range(500):
+    action = env.action_space.sample()
+    obs, reward, done, truncated, _ = env.step(action)
+    
+    if done or truncated:
+        obs, _ = env.reset()
 
 env.close()
 ```
@@ -112,44 +139,56 @@ obs, info = env.reset(options={"level_idx": 10})
 
 ```
 math_is_fun/
-├── README.md                      # This file
-├── mathisfun_sokoban.py          # Main Gymnasium environment
-├── levels_clean.json             # 60 levels in ASCII format
-├── levels_mathisfun.json         # Original numeric format
-├── view_level.py                 # View specific level
-├── play_sokoban.py              # Play through all levels
-├── test_env.py                   # Test environment
-└── __init__.py                   # Environment registration
+├── README.md                               # Overview & quick start
+├── TRAINING.md                             # ⭐ Training guide (START HERE)
+├── QUICKSTART.md                           # Quick reference
+├── setup.py                                # Package setup
+├── __init__.py                             # Environment registration
+├── mathisfun_sokoban.py                   # Main environment
+├── levels_clean.json                      # 60 Sokoban levels
+├── example_stable_baselines3.py           # ⭐ Train with rendering
+├── example_train_with_continuous_render.py # Train with continuous rendering
+├── test_render_callback.py                # Quick rendering test
+├── verify_install.py                      # Verify installation
+├── view_level.py                          # View levels
+└── play_sokoban.py                       # Play manually
 ```
 
 ## 🎓 Training RL Agents
 
-### With Stable-Baselines3
-```python
-from stable_baselines3 import PPO
-from gymnasium.envs.registration import register
+**See [TRAINING.md](TRAINING.md) for complete guide.**
 
-register(
-    id="MathIsFunSokoban-v0",
-    entry_point="mathisfun_sokoban:MathIsFunSokoban",
-    max_episode_steps=300,
-)
-
-# Create environment
-env = gym.make("MathIsFunSokoban-v0")
-
-# Train PPO agent
-model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=100000)
-
-# Test the trained agent
-obs, _ = env.reset()
-for _ in range(1000):
-    action, _ = model.predict(obs, deterministic=True)
-    obs, reward, done, truncated, _ = env.step(action)
-    if done or truncated:
-        obs, _ = env.reset()
+### Quick Training
+```bash
+pip install -e .
+pip install "stable-baselines3[extra]" torch
+python example_stable_baselines3.py  # Trains with rendering
 ```
+
+### Minimal Code
+```python
+import __init__
+import gymnasium as gym
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv
+
+env = gym.make("MathIsFunSokoban-v0")
+env = DummyVecEnv([lambda: env])
+
+model = PPO("CnnPolicy", env, verbose=1)  # Use CnnPolicy for images!
+model.learn(total_timesteps=100000)
+model.save("sokoban_model")
+```
+
+**Key Points:**
+- ✅ Use `CnnPolicy` (not MlpPolicy) - environment outputs images
+- ✅ Import `__init__` first to register environment
+- ✅ Call `env.render()` after `step()` to see visualization
+
+**Examples:**
+- `example_stable_baselines3.py` - Training with rendering (every 100 steps)
+- `example_train_with_continuous_render.py` - Continuous rendering (every step)
+- `test_render_callback.py` - Quick test (500 steps)
 
 ## 🎮 Controls & Features
 
