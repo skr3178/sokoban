@@ -6,15 +6,7 @@ Usage: python view_level.py [level_number]
 import sys
 import gymnasium as gym
 import time
-from gymnasium.envs.registration import register
-from mathisfun_sokoban import MathIsFunSokoban
-
-# Register the environment
-register(
-    id="MathIsFunSokoban-v0",
-    entry_point="mathisfun_sokoban:MathIsFunSokoban",
-    max_episode_steps=300,
-)
+import mathisfun_sokoban  # This auto-registers the environment
 
 # Get level number from command line (default to 0)
 level_idx = int(sys.argv[1]) - 1 if len(sys.argv) > 1 else 0

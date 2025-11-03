@@ -1,88 +1,91 @@
 # Installation Guide
 
-## Method 1: Install as Package (Recommended)
-
-This allows you to use `gym.make("MathIsFunSokoban-v0")` from anywhere.
+## Quick Start
 
 ```bash
-# Navigate to the project directory
-cd /Users/skr3178/Downloads/math_is_fun
+# Create conda environment
+conda create -n sokoban python=3.10.19 -y
+conda activate sokoban
 
-# Install in editable mode
-pip install -e .
-```
-
-Now you can use it from anywhere:
-
-```python
-import gymnasium as gym
-
-env = gym.make("MathIsFunSokoban-v0", render_mode="human")
-obs, _ = env.reset()
-# ... use the environment
-```
-
-## Method 2: Direct Import (Without Installation)
-
-If you don't want to install the package, you can register it manually:
-
-```python
-import gymnasium as gym
-from gymnasium.envs.registration import register
-
-# Register the environment manually
-register(
-    id="MathIsFunSokoban-v0",
-    entry_point="math_is_fun.mathisfun_sokoban:MathIsFunSokoban",
-    max_episode_steps=300,
-)
-
-# Now you can create it
-env = gym.make("MathIsFunSokoban-v0", render_mode="human")
-```
-
-Or import directly:
-
-```python
-from math_is_fun.mathisfun_sokoban import MathIsFunSokoban
-
-env = MathIsFunSokoban(render_mode="human")
-```
-
-## Installing with Stable-Baselines3
-
-```bash
-# First install the package
+# Install package
+cd /path/to/sokoban_rl/sokoban
 pip install -e .
 
-# Then install stable-baselines3 with extras
+# Optional: Install stable-baselines3 for RL training
 pip install "stable-baselines3[extra]" torch
 ```
 
-## Verifying Installation
+## Basic Usage
 
-Run the basic example:
+```python
+import gymnasium as gym
+import mathisfun_sokoban  # Must import first to register environment
+
+env = gym.make("MathIsFunSokoban-v0", render_mode="human")
+obs, _ = env.reset()
+env.render()
+
+for _ in range(100):
+    action = env.action_space.sample()
+    obs, reward, done, truncated, info = env.step(action)
+    env.render()
+    
+    if done or truncated:
+        obs, _ = env.reset()
+        env.render()
+
+env.close()
+```
+
+## Load Specific Level
+
+```python
+import gymnasium as gym
+import mathisfun_sokoban
+import time
+
+env = gym.make("MathIsFunSokoban-v0", render_mode="human")
+
+# Load level 5 (use 0-59 for levels 1-60)
+obs, _ = env.reset(options={"level_idx": 4})
+env.render()
+
+for _ in range(100):
+    action = env.action_space.sample()
+    obs, reward, done, truncated, info = env.step(action)
+    env.render()
+    
+    if done:
+        obs, _ = env.reset(options={"level_idx": 4})
+        env.render()
+    elif truncated:
+        obs, _ = env.reset(options={"level_idx": 4})
+        env.render()
+    
+    time.sleep(0.05)
+
+env.close()
+```
+
+## Command Line Scripts
+
+```bash
+# View a specific level (1-60)
+python view_level.py 5
+```
+
+## Verify Installation
+
 ```bash
 python example_basic.py
 ```
 
-Or check if the environment is registered:
-```bash
-python -c "import gymnasium as gym; env = gym.make('MathIsFunSokoban-v0'); print('Success!')"
-```
-
 ## Troubleshooting
 
-### ModuleNotFoundError: No module named 'math_is_fun'
-- Make sure you ran `pip install -e .` from the project directory
-- Or use Method 2 (manual registration)
+**Environment not found:**
+- Import `mathisfun_sokoban` before `gym.make()`
+- Run `pip install -e .` from sokoban directory
 
-### ImportError related to pygame
-```bash
-pip install pygame
-```
-
-### Environment not found when using gym.make()
-- The package must be installed with `pip install -e .`
-- Or import the `__init__.py` first: `import math_is_fun` before calling `gym.make()`
-
+**Window not showing:**
+- Call `env.render()` after `env.reset()` and after each `env.step()`
+- Install pygame: `pip install pygame`

@@ -10,13 +10,16 @@ import time
 env = gym.make("MathIsFunSokoban-v0", render_mode="human")
 
 obs, _ = env.reset()
+env.render()  # Render the initial state
 
 for _ in range(500):
     a = env.action_space.sample()
     obs, r, done, trunc, _ = env.step(a)
+    env.render()  # Render after each step to update the display
     
     if done or trunc:
         obs, _ = env.reset()
+        env.render()  # Render after reset
     
     time.sleep(0.03)
 

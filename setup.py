@@ -15,6 +15,11 @@ setup(
         "pygame>=2.0.0",
         "Pillow>=9.0.0",
     ],
+    entry_points={
+        "gymnasium.envs": [
+            "MathIsFunSokoban-v0=mathisfun_sokoban:MathIsFunSokoban",
+        ],
+    },
     python_requires=">=3.8",
     description="A Gymnasium environment featuring all 60 Sokoban levels from MathsIsFun.com",
     long_description=long_description,

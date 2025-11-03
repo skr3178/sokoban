@@ -232,3 +232,17 @@ class MathIsFunSokoban(gym.Env):
             import pygame
             pygame.quit()
 
+
+# Auto-register the environment when this module is imported
+from gymnasium.envs.registration import register
+
+# Only register if not already registered
+try:
+    gym.envs.registration.env_specs.get("MathIsFunSokoban-v0")
+except (AttributeError, KeyError):
+    register(
+        id="MathIsFunSokoban-v0",
+        entry_point="mathisfun_sokoban:MathIsFunSokoban",
+        max_episode_steps=300,
+    )
+
